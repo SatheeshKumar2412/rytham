@@ -29,8 +29,13 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Create Flutter Project Structure
-        run: flutter create --project-name rytham --org com.satheesh.rytham . --platforms android
+      - name: Scaffold Android folder from template
+        run: |
+          flutter create --project-name rytham --org com.satheesh.rytham /tmp/rytham_template --platforms android
+          cp -r /tmp/rytham_template/android ./android
+          cp /tmp/rytham_template/pubspec.yaml ./pubspec_template.yaml
+          # Merge dependencies: keep our pubspec but add missing flutter sdk entries
+          cp ./pubspec.yaml ./pubspec_backup.yaml
 
       - name: Get Flutter Dependencies
         run: flutter pub get
