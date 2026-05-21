@@ -25,15 +25,36 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
+          flutter-version: '3.24.0'
           channel: 'stable'
           cache: true
 
-      - name: Create local.properties
+      - name: Scaffold Android Project
         run: |
-          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
-          echo "sdk.dir=$ANDROID_SDK_ROOT" >> android/local.properties
-          cat android/local.properties
+          flutter create --project-name rytham --org com.satheesh.rytham . --platforms android
+          echo "✅ Android folder created"
+
+      - name: Set minSdkVersion to 21
+        run: |
+          # Handle both Groovy and Kotlin DSL build files
+          if [ -f android/app/build.gradle ]; then
+            sed -i 's/minSdkVersion [0-9]*/minSdkVersion 21/' android/app/build.gradle
+            echo "✅ Updated build.gradle (Groovy)"
+            grep minSdkVersion android/app/build.gradle
+          fi
+          if [ -f android/app/build.gradle.kts ]; then
+            sed -i 's/minSdk = [0-9]*/minSdk = 21/' android/app/build.gradle.kts
+            echo "✅ Updated build.gradle.kts (Kotlin DSL)"
+            grep minSdk android/app/build.gradle.kts
+          fi
+
+      - name: Add Storage Permissions to AndroidManifest
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          sed -i '/<manifest/a \    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>' "$MANIFEST"
+          echo "✅ Permissions added"
+          cat "$MANIFEST"
 
       - name: Get Flutter Dependencies
         run: flutter pub get
