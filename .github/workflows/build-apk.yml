@@ -29,11 +29,14 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Create Flutter Project Structure
+        run: flutter create --project-name rytham --org com.satheesh.rytham . --platforms android
+
       - name: Get Flutter Dependencies
         run: flutter pub get
 
       - name: Build Release APK
-        run: flutter build apk --release --no-shrink
+        run: flutter build apk --release
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -41,3 +44,13 @@ jobs:
           name: rytham-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Rytham v1.0.${{ github.run_number }}
+          files: build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
