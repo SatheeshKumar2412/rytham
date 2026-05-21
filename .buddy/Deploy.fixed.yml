@@ -5,3 +5,11 @@
   fail_on_prepare_env_warning: true
   events:
   - type: WEBHOOK
+  actions:
+  - action: flutter build ios --release
+    type: NATIVE_BUILD_MAC_FLUTTER
+    commands:
+    - flutter build ios --release
+    shell: BASH
+    xcode_version: 26.2.0
+    flutter_version: 3.38.7
