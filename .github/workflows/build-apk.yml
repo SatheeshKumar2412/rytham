@@ -33,15 +33,28 @@ jobs:
         run: |
           flutter create --project-name rytham --org com.satheesh.rytham /tmp/rytham_template --platforms android
           cp -r /tmp/rytham_template/android ./android
-          cp /tmp/rytham_template/pubspec.yaml ./pubspec_template.yaml
-          # Merge dependencies: keep our pubspec but add missing flutter sdk entries
-          cp ./pubspec.yaml ./pubspec_backup.yaml
+
+      - name: Patch AndroidManifest for on_audio_query
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          # Add permissions before <application tag
+          sed -i 's|<application|<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <application|' "$MANIFEST"
+          cat "$MANIFEST"
+
+      - name: Patch build.gradle for minSdkVersion
+        run: |
+          GRADLE="android/app/build.gradle"
+          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/' "$GRADLE"
+          cat "$GRADLE"
 
       - name: Get Flutter Dependencies
         run: flutter pub get
 
       - name: Build Release APK
-        run: flutter build apk --release
+        run: flutter build apk --release --verbose 2>&1 | tail -50
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
